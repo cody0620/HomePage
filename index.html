@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Personal Homepage</title>
+  <link rel="icon" type="image/png" href="%BASE_URL%favicon.png" />
+  <link rel="shortcut icon" type="image/png" href="%BASE_URL%favicon.png" />
+  <link rel="apple-touch-icon" href="%BASE_URL%favicon.png" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <canvas id="stars-canvas"></canvas>
+  <div class="nebula-layer" id="nebula-layer"></div>
+
+  <div class="top-actions">
+    <nav class="google-shortcuts" aria-label="Google shortcuts">
+    </nav>
+    <button id="settings-btn" class="settings-btn glass" title="Settings">⚙</button>
+  </div>
+
+  <main class="container">
+    <section class="search-section">
+      <form id="search-form" class="search-bar glass">
+        <input id="search-input" type="text" placeholder="Search..." autocomplete="off" />
+      </form>
+    </section>
+
+    <section id="quick-links" class="quick-links"></section>
+
+    <section class="cards-row">
+      <div id="weather-card" class="card glass weather-card">
+        <div class="card-loading">Loading weather...</div>
+      </div>
+      <div id="artwork-card" class="card glass artwork-card">
+        <div class="card-loading">Loading daily artwork...</div>
+      </div>
+    </section>
+  </main>
+
+  <aside id="settings-panel" class="settings-panel glass">
+    <header class="settings-header">
+      <h2>設定</h2>
+      <button id="settings-close" class="icon-btn" title="關閉">×</button>
+    </header>
+    <nav class="settings-tabs">
+      <button class="tab-btn active" data-tab="background">🌌 背景</button>
+      <button class="tab-btn" data-tab="search">🔍 搜尋</button>
+      <button class="tab-btn" data-tab="links">🔗 連結</button>
+      <button class="tab-btn" data-tab="weather">🌤 天氣</button>
+      <button class="tab-btn" data-tab="art">🖼 名畫</button>
+      <button class="tab-btn" data-tab="appearance">🎨 外觀</button>
+    </nav>
+    <div class="settings-content" id="settings-content"></div>
+  </aside>
+
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>
