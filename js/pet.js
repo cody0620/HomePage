@@ -1,5 +1,7 @@
-const PET_BASE_URL = new URL(`${import.meta.env.BASE_URL}pets/shiba/`, window.location.href);
-const PET_JSON_URL = new URL('pet.json', PET_BASE_URL);
+const PET_BASE_URLS = [
+  new URL('pets/shiba/', document.baseURI),
+  new URL('public/pets/shiba/', document.baseURI)
+];
 const STORAGE_KEY = 'homepage.pet.shiba.position.v1';
 
 const DEFAULT_ATLAS = {
@@ -21,8 +23,8 @@ const DEFAULT_ATLAS = {
 };
 
 export async function initPet() {
-  const pet = await loadPetConfig();
-  const spriteUrl = new URL(pet.spritesheetPath || 'spritesheet.webp', PET_JSON_URL).href;
+  const { pet, baseUrl } = await loadPetConfig();
+  const spriteUrl = new URL(pet.spritesheetPath || 'spritesheet.webp', baseUrl).href;
   const image = await loadImage(spriteUrl);
   const atlas = normalizeAtlas(pet, image);
 
@@ -54,18 +56,28 @@ export async function initPet() {
 }
 
 async function loadPetConfig() {
-  try {
-    const response = await fetch(PET_JSON_URL);
-    if (!response.ok) throw new Error(`Unable to load ${PET_JSON_URL}`);
-    return await response.json();
-  } catch (error) {
-    console.warn('Shiba pet config could not be loaded; using defaults.', error);
-    return {
+  let lastError = null;
+
+  for (const baseUrl of PET_BASE_URLS) {
+    const jsonUrl = new URL('pet.json', baseUrl);
+    try {
+      const response = await fetch(jsonUrl);
+      if (!response.ok) throw new Error(`Unable to load ${jsonUrl}`);
+      return { pet: await response.json(), baseUrl };
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  console.warn('Shiba pet config could not be loaded; using defaults.', lastError);
+  return {
+    pet: {
       id: 'shiba',
       displayName: 'Shiba',
       spritesheetPath: 'spritesheet.webp'
-    };
-  }
+    },
+    baseUrl: PET_BASE_URLS[PET_BASE_URLS.length - 1]
+  };
 }
 
 function loadImage(src) {

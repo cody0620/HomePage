@@ -1,7 +1,11 @@
-const ARTWORKS_URL = '/artworks/artworks.json';
+const ARTWORKS_URLS = [
+  new URL('artworks/artworks.json', document.baseURI).href,
+  new URL('public/artworks/artworks.json', document.baseURI).href
+];
 const STORAGE_KEY = 'homepage.artwork.shibaMode.v1';
 
 let shibaMode = readShibaMode();
+let artworkAssetBase = new URL('artworks/', document.baseURI).href;
 
 function getDayIndex(length) {
   const now = new Date();
@@ -35,10 +39,7 @@ export async function renderDailyArtwork(card, settings) {
   card.innerHTML = '<div class="card-loading">Loading daily artwork...</div>';
 
   try {
-    const response = await fetch(ARTWORKS_URL);
-    if (!response.ok) throw new Error('artworks not found');
-
-    const artworks = await response.json();
+    const artworks = await loadArtworks();
     if (!Array.isArray(artworks) || artworks.length === 0) {
       throw new Error('empty artwork list');
     }
@@ -47,7 +48,7 @@ export async function renderDailyArtwork(card, settings) {
     const displayImage = shibaMode && artwork.shibaImage ? artwork.shibaImage : artwork.image;
     const title = escapeHtml(clean(artwork.title));
     const alt = escapeHtml(artwork.alt || artwork.title);
-    const image = escapeHtml(displayImage);
+    const image = escapeHtml(resolveArtworkAsset(displayImage));
     const sourceUrl = escapeHtml(artwork.sourceUrl);
 
     card.classList.toggle('shiba-mode', shibaMode && !!artwork.shibaImage);
@@ -66,6 +67,34 @@ export async function renderDailyArtwork(card, settings) {
     console.warn('Daily artwork failed to load.', error);
     card.innerHTML = '<div class="card-loading">Daily artwork is unavailable.</div>';
   }
+}
+
+async function loadArtworks() {
+  let lastError = null;
+
+  for (const url of ARTWORKS_URLS) {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`artworks not found: ${url}`);
+      artworkAssetBase = new URL('.', url).href;
+      const artworks = await response.json();
+      if (!Array.isArray(artworks) || artworks.length === 0) {
+        throw new Error('empty artwork list');
+      }
+      return artworks;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError || new Error('artworks not found');
+}
+
+function resolveArtworkAsset(path) {
+  if (!path) return '';
+  if (/^https?:\/\//i.test(path)) return path;
+  const relativePath = path.replace(/^\/?artworks\//, '');
+  return new URL(relativePath.replace(/^\//, ''), artworkAssetBase).href;
 }
 
 export function toggleDailyArtworkShibaMode(card, settings) {
